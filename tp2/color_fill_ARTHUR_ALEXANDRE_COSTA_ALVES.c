@@ -42,7 +42,7 @@ void print_matrix(Matriz matriz) {
 // Prohibido alterar a assinatura da função colorir.
 void colorir(int i, int j, int nova_cor, int cor_atual, Matriz matriz) {
     // completar com a mesma lógica do TP1, prohibido usar uma lógica diferente da do TP1, apenas pode ser alterado a forma de percorrer a matriz, mas a lógica de colorir deve ser a mesma.
-    if((i < matriz.linhas) || (i >= 0) || (j < matriz.colunas) || (j >= 0)){
+    if((i < matriz.linhas) && (i >= 0) && (j < matriz.colunas) && (j >= 0)){
         int mudou;
         int indiceI, indiceJ;
         
@@ -94,7 +94,7 @@ int** ler_arquivo(char *nome_arquivo, Matriz *matriz) {
         printf("Falha na leitura de dimensões!\n");
         fclose(arquivo);
         exit(1);
-    } else if((matriz->linhas < 0) || (matriz->colunas < 0)){
+    } else if((matriz->linhas <= 0) || (matriz->colunas <= 0)){
         printf("Número de linhas ou colunas inválido\n");
         fclose(arquivo);
         exit(1);
@@ -157,7 +157,11 @@ int main(int argc, char *argv[]) {
     
     int i, j, nova_cor, cor_atual;
     int entradaValida, cont;
+
     // Verifica se o número de argumentos passados para o programa é igual a 2 (o nome do programa e o nome do arquivo da matriz). Caso contrário, imprime uma mensagem de uso e retorna 1.
+    if(argv != 2){
+        return 1;
+    }
 
     Matriz matriz = {0, 0, NULL};
     matriz.I = ler_arquivo(argv[1], &matriz);    
@@ -165,7 +169,7 @@ int main(int argc, char *argv[]) {
     // Cria o arquivo de log "color_fill_log.txt" usando a função criar_arquivo_log do TAD log.h. Caso não seja possível criar o arquivo, imprime uma mensagem de erro, libera a memória da matriz e retorna 1.
     if(!(criar_arquivo_log("color_fill_log.txt"))){
         printf("Falha ao criar arquivo log\n");
-        for(int cont = 0; cont < matriz.linhas; cont++){
+        for(cont = 0; cont < matriz.linhas; cont++){
             free(matriz.I[cont]);
         }
         free(matriz.I);
@@ -184,10 +188,10 @@ int main(int argc, char *argv[]) {
             printf("Digite o número da cor (0 a 8 ou -1 para sair).\n");
             scanf("%d", &nova_cor);
 
-            if((nova_cor == -1) || (nova_cor >= 0) && (nova_cor <= 8)){
+            if((nova_cor == -1) || ((nova_cor >= 0) && (nova_cor <= 8))){
                 entradaValida = 1;
             } else {
-                printf("Entrada inválida, tente novamente!\n");
+                printf("Entrada inválida!\n");
                 limpar_buffer_do_teclado();
             }
         }
@@ -205,7 +209,7 @@ int main(int argc, char *argv[]) {
             if((i >= 0) && (i < matriz.linhas)){
                 entradaValida = 1;
             } else {
-                printf("Coordenada i inválida\n");
+                printf("Coordenada i inválida.\n");
                 limpar_buffer_do_teclado();
             }
         }
@@ -215,10 +219,10 @@ int main(int argc, char *argv[]) {
             printf("\nDigite a coordenada j (Coluna): ");
             scanf("%d", &j);
 
-            if((j >= 0) && (j < matriz.linhas)){
+            if((j >= 0) && (j < matriz.colunas)){
                 entradaValida = 1;
             } else {
-                printf("Coordenada j inválida\n");
+                printf("Coordenada j inválida.\n");
                 limpar_buffer_do_teclado();
             }
         }
@@ -226,7 +230,7 @@ int main(int argc, char *argv[]) {
         // Verifica se a nova cor é diferente da cor atual na posição (i, j). Caso sejam iguais, imprime uma mensagem de erro "A nova cor deve ser diferente da cor na posição atual\n" e solicita novamente a entrada do usuário.
         cor_atual = matriz.I[i][j];
         if(nova_cor == cor_atual){
-            printf("A cor atual deve ser diferente da nova cor!\n");
+            printf("A nova cor deve ser diferente da cor na posição atual\n");
             
             entradaValida = 0;
             while(!entradaValida){
