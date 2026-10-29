@@ -42,14 +42,15 @@ void print_matrix(Matriz matriz) {
 // Prohibido alterar a assinatura da função colorir.
 void colorir(int i, int j, int nova_cor, int cor_atual, Matriz matriz) {
     // completar com a mesma lógica do TP1, prohibido usar uma lógica diferente da do TP1, apenas pode ser alterado a forma de percorrer a matriz, mas a lógica de colorir deve ser a mesma.
+
 }
 
 // Prohibido alterar a assinatura da função ler_arquivo.
 int** ler_arquivo(char *nome_arquivo, Matriz *matriz) {
 
     // Abre o arquivo para leitura com fopen e verifica se foi aberto com sucesso, caso contrário imprime uma mensagem de erro e encerra o programa com exit(1)
-    fopen(*nome_arquivo);
-    if(fopen == NULL){
+    FILE *arquivo = fopen(nome_arquivo, "r");
+    if(arquivo == NULL){
         printf("Arquivo inexistente\n");
         exit(1);
     }
@@ -58,13 +59,13 @@ int** ler_arquivo(char *nome_arquivo, Matriz *matriz) {
 
     // Lê as dimensões da matriz (linhas e colunas) do arquivo usando fscanf, verificando se a leitura foi bem-sucedida e se os valores são válidos (maiores que zero). Caso contrário, fecha o arquivo, imprime uma mensagem de erro e encerra o programa com exit(1).
     
-    if(fscanf(*nome_arquivo, "%d %d", &(matriz->linhas), &(matriz->colunas)) != 2){
+    if(fscanf(arquivo, "%d %d", &(matriz->linhas), &(matriz->colunas)) != 2){
         printf("Falha na leitura de dimensões!\n");
-        fclose(*nome_arquivo);
+        fclose(arquivo);
         exit(1);
     } else if((matriz->linhas < 0) || (matriz->colunas < 0)){
         printf("Número de linhas ou colunas inválido\n");
-        fclose(*nome_arquivo);
+        fclose(arquivo);
         exit(1);
     }
 
@@ -72,44 +73,45 @@ int** ler_arquivo(char *nome_arquivo, Matriz *matriz) {
     matriz->I = (int**) malloc(matriz->linhas*sizeof(int*));
     if(matriz->I == NULL){
         printf("Erro de alocação de matriz\n");
-        fclose(*nome_arquivo);
+        fclose(arquivo);
         exit(1);
     }
     
     // Aloca dinamicamente cada linha da matriz com malloc usando I[], verificando se a alocação foi bem-sucedida. Caso contrário, libera a memória já alocada (todas as linhas que foram alocadas e o vetor de ponteiros), fecha o arquivo, imprime uma mensagem de erro e encerra o programa com exit(1). 
-    for(cont = 0; cont < matriz-linhas, cont++){
+    for(cont = 0; cont < matriz->linhas; cont++){
         matriz->I[cont] = (int*) malloc(matriz->colunas*sizeof(int));
-        desalocar = cont;
+        
         if(matriz->I[cont] == NULL){
+            desalocar = cont;
             printf("Erro de alocação de elementos da matriz\n");
             for(cont = 0; cont < desalocar; cont++){
                 free(matriz->I[cont]);
             }
-            freee(matriz->I);
-            fclose(*nome_arquivo);
-            exit(1)
+            free(matriz->I);
+            fclose(arquivo);
+            exit(1);
         }
     }
     
     // Lê os valores da matriz do arquivo usando fscanf, verificando se a leitura foi bem-sucedida e se os valores são válidos (entre 0 e 8). Caso contrário, libera a memória alocada (todas as linhas e o vetor de ponteiros), fecha o arquivo, imprime uma mensagem de erro e encerra o programa com exit(1).
     for(i = 0; i < matriz->linhas; i++){
         for(j = 0; j < matriz->colunas; j++){
-            if((fscanf(*nome_arquivo, "%d", &(matriz->I[cont])) != 1) || 
-              ((matriz->I[cont] < 0) || (matriz->I[cont]) > 8)){
+            if((fscanf(arquivo, "%d", &(matriz->I[i][j])) != 1) || 
+              ((matriz->I[i][j] < 0) || (matriz->I[i][j] > 8))){
                 printf("Falha na leitura dos elementos da matriz\n");
                 printf("Ou valores para cor inválidos\n");
                 for(cont = 0; cont < matriz->linhas; cont++){
                     free(matriz->I[cont]);
                 }
                 free(matriz->I);
+                fclose(arquivo);
                 exit(1);
             }
         }
-        limpar_buffer_do_teclado();
     }
 
     // Fecha o arquivo e retorna o ponteiro para a matriz alocada.
-    fclose(nome_arquivo);
+    fclose(arquivo);
     return matriz->I;
 }
 
@@ -158,6 +160,10 @@ int main(int argc, char *argv[]) {
                 limpar_buffer_do_teclado();
             }
         }
+
+        if(nova_cor == -1){
+            break;
+        }
         
         // Solicita a coordenada i. Verifica se a coordenada é válida (posição dentro dos limites da matriz). Caso a entrada seja inválida, imprime uma mensagem de erro "Coordenada i inválida.\n", limpa o buffer do teclado e solicita novamente a entrada do usuário.
         entradaValida = 0;
@@ -205,6 +211,11 @@ int main(int argc, char *argv[]) {
                     limpar_buffer_do_teclado();
                 }
             }
+
+            if(nova_cor == -1){
+                break;
+            }
+        
         }
         
         colorir(i, j, nova_cor, cor_atual, matriz);
