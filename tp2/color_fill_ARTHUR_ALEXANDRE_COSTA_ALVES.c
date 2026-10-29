@@ -1,5 +1,5 @@
-// Nome completo:
-// Matricula:
+// Nome completo: Arthur Alexandre Costa Alves
+// Matricula: 22652133
 #include <stdio.h>
 #include <stdlib.h>
 #include "log.h"
@@ -42,15 +42,15 @@ void print_matrix(Matriz matriz) {
 // Prohibido alterar a assinatura da função colorir.
 void colorir(int i, int j, int nova_cor, int cor_atual, Matriz matriz) {
     // completar com a mesma lógica do TP1, prohibido usar uma lógica diferente da do TP1, apenas pode ser alterado a forma de percorrer a matriz, mas a lógica de colorir deve ser a mesma.
-    if((i < matriz.linhas) && (i >= 0) && (j < matriz.colunas) && (j >= 0)){
+    if((i < matriz.linhas) && (i >= 0) && (j < matriz.colunas) && (j >= 0) && (matriz.I[i][j] != nova_cor)){
         int mudou;
         int indiceI, indiceJ;
         
-        // Cor que fará a inundação da cor
+        // Célula inicial é pintada primeiro: é a semente da propagação
         cor_atual = matriz.I[i][j];
-        // Célula que iniciará o flood fill
         matriz.I[i][j] = nova_cor;
 
+        // Repete varreduras até não pintar mais nada
         do{
 
             mudou = 0;
@@ -60,13 +60,15 @@ void colorir(int i, int j, int nova_cor, int cor_atual, Matriz matriz) {
 
                     if(matriz.I[indiceI][indiceJ] == cor_atual){
 
-                        if( (indiceI - 1 >= 0) && (matriz.I[indiceI - 1][indiceJ] == nova_cor) ||
-                            (indiceI + 1 < matriz.linhas) && (matriz.I[indiceI + 1][indiceJ] == nova_cor) ||
-                            (indiceJ - 1 >= 0) && (matriz.I[indiceI][indiceJ - 1] == nova_cor) ||
-                            (indiceJ + 1 < matriz.colunas) && (matriz.I[indiceI][indiceJ + 1] == nova_cor)){
+                        if( ((indiceI - 1 >= 0) && (matriz.I[indiceI - 1][indiceJ] == nova_cor)) ||
+                            ((indiceI + 1 < matriz.linhas) && (matriz.I[indiceI + 1][indiceJ] == nova_cor)) ||
+                            ((indiceJ - 1 >= 0) && (matriz.I[indiceI][indiceJ - 1] == nova_cor)) ||
+                            ((indiceJ + 1 < matriz.colunas) && (matriz.I[indiceI][indiceJ + 1] == nova_cor))){
 
                                 matriz.I[indiceI][indiceJ] = nova_cor;
+                                //Indicador de que precisa de mais uma varredura
                                 mudou = 1;
+                                
                         }
                     }
                 }
@@ -74,6 +76,15 @@ void colorir(int i, int j, int nova_cor, int cor_atual, Matriz matriz) {
             } 
         } while(mudou);
     }
+}
+
+// Libera primeiro as linhas e depois o vetor de ponteiros.
+// O parâmetro permite liberar também uma matriz só parcialmente alocada.
+void libera_matriz(int **I, int linhas){
+    for(int cont = 0; cont < linhas; cont++){
+        free(I[cont]);
+    }
+    free(I);
 }
 
 // Prohibido alterar a assinatura da função ler_arquivo.
@@ -86,7 +97,7 @@ int** ler_arquivo(char *nome_arquivo, Matriz *matriz) {
         exit(1);
     }
 
-    int cont, i, j, desalocar;
+    int cont, i, j;
 
     // Lê as dimensões da matriz (linhas e colunas) do arquivo usando fscanf, verificando se a leitura foi bem-sucedida e se os valores são válidos (maiores que zero). Caso contrário, fecha o arquivo, imprime uma mensagem de erro e encerra o programa com exit(1).
     
@@ -113,12 +124,8 @@ int** ler_arquivo(char *nome_arquivo, Matriz *matriz) {
         matriz->I[cont] = (int*) malloc(matriz->colunas*sizeof(int));
         
         if(matriz->I[cont] == NULL){
-            desalocar = cont;
             printf("Erro de alocação de elementos da matriz\n");
-            for(cont = 0; cont < desalocar; cont++){
-                free(matriz->I[cont]);
-            }
-            free(matriz->I);
+            libera_matriz(matriz->I, cont);
             fclose(arquivo);
             exit(1);
         }
@@ -131,10 +138,7 @@ int** ler_arquivo(char *nome_arquivo, Matriz *matriz) {
               ((matriz->I[i][j] < 0) || (matriz->I[i][j] > 8))){
                 printf("Falha na leitura dos elementos da matriz\n");
                 printf("Ou valores para cor inválidos\n");
-                for(cont = 0; cont < matriz->linhas; cont++){
-                    free(matriz->I[cont]);
-                }
-                free(matriz->I);
+                libera_matriz(matriz->I, matriz->linhas);
                 fclose(arquivo);
                 exit(1);
             }
@@ -156,10 +160,11 @@ void limpar_buffer_do_teclado() {
 int main(int argc, char *argv[]) {
     
     int i, j, nova_cor, cor_atual;
-    int entradaValida, cont;
+    int entradaValida;
 
     // Verifica se o número de argumentos passados para o programa é igual a 2 (o nome do programa e o nome do arquivo da matriz). Caso contrário, imprime uma mensagem de uso e retorna 1.
-    if(argv != 2){
+    if(argc != 2){
+        printf("Uso: %s <arquivo_da_matriz>\n", argv[0]);
         return 1;
     }
 
@@ -169,10 +174,7 @@ int main(int argc, char *argv[]) {
     // Cria o arquivo de log "color_fill_log.txt" usando a função criar_arquivo_log do TAD log.h. Caso não seja possível criar o arquivo, imprime uma mensagem de erro, libera a memória da matriz e retorna 1.
     if(!(criar_arquivo_log("color_fill_log.txt"))){
         printf("Falha ao criar arquivo log\n");
-        for(cont = 0; cont < matriz.linhas; cont++){
-            free(matriz.I[cont]);
-        }
-        free(matriz.I);
+        libera_matriz(matriz.I, matriz.linhas);
         return 1;
     }
 
@@ -186,9 +188,10 @@ int main(int argc, char *argv[]) {
         entradaValida = 0;
         while(!entradaValida){
             printf("Digite o número da cor (0 a 8 ou -1 para sair).\n");
-            scanf("%d", &nova_cor);
+            
 
-            if((nova_cor == -1) || ((nova_cor >= 0) && (nova_cor <= 8))){
+            if((scanf("%d", &nova_cor) == 1) && 
+              ((nova_cor == -1) || ((nova_cor >= 0) && (nova_cor <= 8)))){
                 entradaValida = 1;
             } else {
                 printf("Entrada inválida!\n");
@@ -204,9 +207,9 @@ int main(int argc, char *argv[]) {
         entradaValida = 0;
         while(!entradaValida){
             printf("Digite a coordenada i (Linha): ");
-            scanf("%d", &i);
 
-            if((i >= 0) && (i < matriz.linhas)){
+            if((scanf("%d", &i) == 1) &&
+              ((i >= 0) && (i < matriz.linhas))){
                 entradaValida = 1;
             } else {
                 printf("Coordenada i inválida.\n");
@@ -217,9 +220,9 @@ int main(int argc, char *argv[]) {
         entradaValida = 0;
         while(!entradaValida){
             printf("\nDigite a coordenada j (Coluna): ");
-            scanf("%d", &j);
 
-            if((j >= 0) && (j < matriz.colunas)){
+            if((scanf("%d", &j) == 1) &&
+              ((j >= 0) && (j < matriz.colunas))){
                 entradaValida = 1;
             } else {
                 printf("Coordenada j inválida.\n");
@@ -235,14 +238,15 @@ int main(int argc, char *argv[]) {
             entradaValida = 0;
             while(!entradaValida){
                 printf("Digite o número da cor (0 a 8 ou -1 para sair).\n");
-                scanf("%d", &nova_cor);
 
-                if(((nova_cor == -1) || (nova_cor >= 0) && 
-                    (nova_cor <= 8)) &&
-                    (nova_cor != cor_atual)){
+                if(((scanf("%d", &nova_cor) == 1) &&
+                   ((nova_cor == -1) || ((nova_cor >= 0) && 
+                    (nova_cor <= 8))) &&
+                    (nova_cor != cor_atual))){
+
                     entradaValida = 1;
                 } else {
-                    printf("Entrada inválida, tente novamente!\n");
+                    printf("Entrada inválida.\n");
                     limpar_buffer_do_teclado();
                 }
             }
@@ -262,10 +266,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Liberar memória da matriz antes de encerrar o programa
-    for(cont = 0; cont < matriz.linhas; cont++){
-        free(matriz.I[cont]);
-    }
-    free(matriz.I);
+    libera_matriz(matriz.I, matriz.linhas);
 
     return 0;
 }
