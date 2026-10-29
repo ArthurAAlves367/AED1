@@ -1,5 +1,5 @@
-// Nome completo:
-// Matricula:
+// Nome completo: Arthur Alexandre Costa Alves
+// Matricula: 22652133
 #include <stdio.h>
 #include "log.h"
 
