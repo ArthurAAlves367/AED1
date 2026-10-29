@@ -105,6 +105,7 @@ int** ler_arquivo(char *nome_arquivo, Matriz *matriz) {
                 exit(1);
             }
         }
+        limpar_buffer_do_teclado();
     }
 
     // Fecha o arquivo e retorna o ponteiro para a matriz alocada.
