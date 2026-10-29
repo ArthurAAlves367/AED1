@@ -54,29 +54,62 @@ int** ler_arquivo(char *nome_arquivo, Matriz *matriz) {
         exit(1);
     }
 
-    int i, j;
+    int cont, i, j, desalocar;
 
     // Lê as dimensões da matriz (linhas e colunas) do arquivo usando fscanf, verificando se a leitura foi bem-sucedida e se os valores são válidos (maiores que zero). Caso contrário, fecha o arquivo, imprime uma mensagem de erro e encerra o programa com exit(1).
-
-    if((matriz->linhas > 0) && (matriz->colunas > 0)){
-        i = matriz->linhas;
-        j = matriz->colunas;
-    } else {
-        printf("Erro! Linhas ou Colunas menores que zero!\n");
+    
+    if(fscanf(*nome_arquivo, "%d %d", &(matriz->linhas), &(matriz->colunas)) != 2){
+        printf("Falha na leitura de dimensões!\n");
+        fclose(*nome_arquivo);
+        exit(1);
+    } else if((matriz->linhas < 0) || (matriz->colunas < 0)){
+        printf("Número de linhas ou colunas inválido\n");
+        fclose(*nome_arquivo);
         exit(1);
     }
 
-    matriz->I = (int**) malloc(linhas*sizeof(int*));
-
     // Aloca dinamicamente a matriz de inteiros com malloc usando int** (vetor de ponteiros), verificando se a alocação foi bem-sucedida. Caso contrário, fecha o arquivo, imprime uma mensagem de erro e encerra o programa com exit(1).
-
+    matriz->I = (int**) malloc(matriz->linhas*sizeof(int*));
+    if(matriz->I == NULL){
+        printf("Erro de alocação de matriz\n");
+        fclose(*nome_arquivo);
+        exit(1);
+    }
+    
     // Aloca dinamicamente cada linha da matriz com malloc usando I[], verificando se a alocação foi bem-sucedida. Caso contrário, libera a memória já alocada (todas as linhas que foram alocadas e o vetor de ponteiros), fecha o arquivo, imprime uma mensagem de erro e encerra o programa com exit(1). 
-
+    for(cont = 0; cont < matriz-linhas, cont++){
+        matriz->I[cont] = (int*) malloc(matriz->colunas*sizeof(int));
+        desalocar = cont;
+        if(matriz->I[cont] == NULL){
+            printf("Erro de alocação de elementos da matriz\n");
+            for(cont = 0; cont < desalocar; cont++){
+                free(matriz->I[cont]);
+            }
+            freee(matriz->I);
+            fclose(*nome_arquivo);
+            exit(1)
+        }
+    }
+    
     // Lê os valores da matriz do arquivo usando fscanf, verificando se a leitura foi bem-sucedida e se os valores são válidos (entre 0 e 8). Caso contrário, libera a memória alocada (todas as linhas e o vetor de ponteiros), fecha o arquivo, imprime uma mensagem de erro e encerra o programa com exit(1).
+    for(i = 0; i < matriz->linhas; i++){
+        for(j = 0; j < matriz->colunas; j++){
+            if((fscanf(*nome_arquivo, "%d", &(matriz->I[cont])) != 1) || 
+              ((matriz->I[cont] < 0) || (matriz->I[cont]) > 8)){
+                printf("Falha na leitura dos elementos da matriz\n");
+                printf("Ou valores para cor inválidos\n");
+                for(cont = 0; cont < matriz->linhas; cont++){
+                    free(matriz->I[cont]);
+                }
+                free(matriz->I);
+                exit(1);
+            }
+        }
+    }
 
     // Fecha o arquivo e retorna o ponteiro para a matriz alocada.
     fclose(arquivo);
-    return I;
+    return matriz->I;
 }
 
 // Prohibido alterar esta função utilizada para limpar_buffer_do_teclado.
