@@ -7,6 +7,6 @@
 int criar_arquivo_log(const char *nome_arquivo);
 
 // função para adicionar uma entrada ao arquivo de log chamada log_append(). Parâmetros: o nome do arquivo de log, a cor, a linha i e a coluna j. Retorno: 1 se a entrada foi adicionada com sucesso, 0 caso contrário. Uma linha por iteração, no formato: "cor=cor i=i j=j\n". Exemplo: "cor=3 i=2 j=5\n", "cor=2 i=0 j=3\n", etc.
-int log_append(const char *nome_arquivo, int cor, int i, int j)
+int log_append(const char *nome_arquivo, int cor, int i, int j);
 
 #endif
