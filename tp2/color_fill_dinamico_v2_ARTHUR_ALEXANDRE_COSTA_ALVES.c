@@ -109,7 +109,7 @@ int** ler_arquivo(char *nome_arquivo, Matriz *matriz) {
     }
 
     // Fecha o arquivo e retorna o ponteiro para a matriz alocada.
-    fclose(arquivo);
+    fclose(nome_arquivo);
     return matriz->I;
 }
 
@@ -123,32 +123,93 @@ void limpar_buffer_do_teclado() {
 int main(int argc, char *argv[]) {
     
     int i, j, nova_cor, cor_atual;
-
+    int entradaValida;
     // Verifica se o número de argumentos passados para o programa é igual a 2 (o nome do programa e o nome do arquivo da matriz). Caso contrário, imprime uma mensagem de uso e retorna 1.
 
     Matriz matriz = {0, 0, NULL};
     matriz.I = ler_arquivo(argv[1], &matriz);    
 
     // Cria o arquivo de log "color_fill_log.txt" usando a função criar_arquivo_log do TAD log.h. Caso não seja possível criar o arquivo, imprime uma mensagem de erro, libera a memória da matriz e retorna 1.
-    
+    if(!(criar_arquivo_log("color_fill_log.txt"))){
+        printf("Falha ao criar arquivo log\n");
+        for(int cont = 0; cont < matriz.linhas; cont++){
+            free(matriz.I[cont]);
+        }
+        free(matriz.I);
+        return 1;
+    }
+
     while (1)
     {
         print_matrix(matriz);
-
+        
         // Lógica de interação com o usuário para solicitar a nova cor, a posição (i, j) e chamar a função colorir. A cada iteração, imprime a matriz atualizada e solicita a entrada do usuário.
-
+        
         // Verifica se a cor de entrada do usuário é válida (cor entre 0 e 8 ou -1 para sair). Caso a entrada seja inválida, imprime uma mensagem de erro "Entrada inválida.\n", limpa o buffer do teclado e solicita novamente a entrada do usuário.
+        entradaValida = 0;
+        while(!entradaValida){
+            printf("Digite o número da cor (0 a 8 ou -1 para sair).\n");
+            scanf("%d", &nova_cor);
+
+            if((nova_cor == -1) || (nova_cor >= 0) && (nova_cor <= 8)){
+                entradaValida = 1;
+            } else {
+                printf("Entrada inválida, tente novamente!\n");
+                limpar_buffer_do_teclado();
+            }
+        }
         
         // Solicita a coordenada i. Verifica se a coordenada é válida (posição dentro dos limites da matriz). Caso a entrada seja inválida, imprime uma mensagem de erro "Coordenada i inválida.\n", limpa o buffer do teclado e solicita novamente a entrada do usuário.
+        entradaValida = 0;
+        while(entradaValida){
+            printf("Digite a coordenada i (Linha): ");
+            scanf("%d", &i);
 
+            if((i >= 0) && (i < matriz.linhas)){
+                entradaValida = 1;
+            } else {
+                printf("Coordenada i inválida\n");
+                limpar_buffer_do_teclado();
+            }
+        }
         // Solicita a coordenada j. Verifica se a coordenada é válida (posição dentro dos limites da matriz). Caso a entrada seja inválida, imprime uma mensagem de erro "Coordenada j inválida.\n", limpa o buffer do teclado e solicita novamente a entrada do usuário.
+        entradaValida = 0;
+        while(entradaValida){
+            printf("\nDigite a coordenada j (Coluna): ");
+            scanf("%d", &j);
 
-        // Após colorir a matriz, chama a função log_append para registrar a operação no arquivo de log. Caso não seja possível escrever no arquivo, imprime uma mensagem de aviso.
+            if((j >= 0) && (j < matriz.linhas)){
+                entradaValida = 1;
+            } else {
+                printf("Coordenada j inválida\n");
+                limpar_buffer_do_teclado();
+            }
+        }
 
         // Verifica se a nova cor é diferente da cor atual na posição (i, j). Caso sejam iguais, imprime uma mensagem de erro "A nova cor deve ser diferente da cor na posição atual\n" e solicita novamente a entrada do usuário.
+        cor_atual = matriz.I[i][j];
+        if(nova_cor == cor_atual){
+            printf("A cor atual deve ser diferente da nova cor!\n");
+            
+            entradaValida = 0;
+            while(!entradaValida){
+                printf("Digite o número da cor (0 a 8 ou -1 para sair).\n");
+                scanf("%d", &nova_cor);
 
+                if(((nova_cor == -1) || (nova_cor >= 0) && 
+                    (nova_cor <= 8)) &&
+                    (nova_cor != cor_atual)){
+                    entradaValida = 1;
+                } else {
+                    printf("Entrada inválida, tente novamente!\n");
+                    limpar_buffer_do_teclado();
+                }
+            }
+        }
+        
         colorir(i, j, nova_cor, cor_atual, matriz);
-
+        
+        // Após colorir a matriz, chama a função log_append para registrar a operação no arquivo de log. Caso não seja possível escrever no arquivo, imprime uma mensagem de aviso.
         if (!log_append("color_fill_log.txt", nova_cor, i, j)) {
             fprintf(stderr, "Aviso: nao foi possivel escrever o color_fill_log.txt\n");
         }
